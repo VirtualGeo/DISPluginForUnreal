@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "Engine/GameInstance.h"
+
 DEFINE_LOG_CATEGORY(LogDISSendComponent);
 
 // Sets default values for this component's properties
