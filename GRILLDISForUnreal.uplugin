@@ -11,7 +11,7 @@
 	"MarketplaceURL": "",
 	"SupportURL": "https://www.af-grill.com/contact/contact-us-form",
 	"EngineVersion": "5.2",
-	"IsBetaVersion": true,
+	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"CanContainContent": true,
 	"Installed": true,
