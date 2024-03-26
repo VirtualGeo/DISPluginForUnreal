@@ -77,7 +77,7 @@ struct FInitialDISConditions
 	}
 };
 
-UCLASS(Blueprintable)
+UCLASS(config=GRILLDIS, Blueprintable)
 class DISRUNTIME_API ADISGameManager : public AInfo
 {
 	GENERATED_BODY()
@@ -161,17 +161,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GRILL DIS|Game Manager")
 		bool RemoveDISEntityFromMap(FEntityID EntityIDToRemove);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
-		Meta = (DisplayName = "DIS Enumeration Mapping", Tooltip = "The DIS Enumeration Mapping to use for this manager. This dictates the entity enumerations that will be recognized and managed by this DIS Game Manager."))
-		UDISClassEnumMappings* DISClassEnum;
+	/**
+	 * Relative to GameDir 
+	 */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "GRILL DIS|Game Manager", meta = (FilePath, RelativeToGameDir))
+	FFilePath DISMappingCSV;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
+		Meta = (DisplayName = "DIS Mapping Table", Tooltip = "The DIS Enumeration Mapping to use for this manager. This dictates the entity enumerations that will be recognized and managed by this DIS Game Manager."))
+	UDataTable* DISMappingTable;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
+		Meta = (DisplayName = "DIS Enumeration Mapping", Tooltip = "The DIS Enumeration Mapping to use for this manager. This dictates the entity enumerations that will be recognized and managed by this DIS Game Manager."))
+	UDISClassEnumMappings* DISClassEnum;
+
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
 		Meta = (DisplayName = "Exercise ID", Tooltip = "The Exercise ID of the DIS sim. Valid Exercise IDs range from 0 to 255.", UIMin = 0, UIMax = 255, ClampMin = 0, ClampMax = 255))
 		int32 ExerciseID = 0;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
 		Meta = (DisplayName = "Site ID", Tooltip = "The Site ID of this application instance. Valid Site IDs range from 0 to 65535.", UIMin = 0, UIMax = 65535, ClampMin = 0, ClampMax = 65535))
 		int32 SiteID = 0;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager",
 		Meta = (DisplayName = "Application ID", Tooltip = "The Application ID of this application instance. Valid Application IDs range from 0 to 65535.", UIMin = 0, UIMax = 65535, ClampMin = 0, ClampMax = 65535))
 		int32 ApplicationID = 0;
 
@@ -196,22 +206,24 @@ protected:
 	std::map<FEntityID, AActor*> RawDISActorMappings;
 
 	//Whether or not to auto connect receive sockets
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking")
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking")
 		bool AutoConnectReceiveAddresses;
 	//Receive sockets to auto setup
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking",
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking",
 		meta = (DisplayName = "Auto Connect Receive Sockets", EditCondition = "AutoConnectReceiveAddresses"))
 		TArray<FReceiveSocketInfo> ReceiveSocketsToSetup;
 	//Whether or not to auto connect send sockets
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking")
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking")
 		bool AutoConnectSendAddresses;
 	//Send sockets to auto setup
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking",
+	UPROPERTY(Config, BlueprintReadWrite, EditAnywhere, Category = "GRILL DIS|Game Manager|Networking",
 		meta = (DisplayName = "Auto Connect Send Sockets", EditCondition = "AutoConnectSendAddresses"))
 		TArray<FSendSocketInfo> SendSocketsToSetup;
 
 
 private:
+	void InitializeMappingFromDataTable(UDataTable* DISMappingTableIn);
+
 	void SpawnNewEntityFromEntityState(FEntityStatePDU EntityStatePDUIn);
 	UDISReceiveComponent* GetAssociatedDISComponent(FEntityID EntityIDIn);
 	AGeoReferencingSystem* GeoReferencingSystem;

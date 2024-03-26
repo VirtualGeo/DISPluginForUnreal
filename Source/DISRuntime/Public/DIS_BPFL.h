@@ -13,6 +13,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogDIS_BPFL, Log, All);
 
+class UDataTable;
+
 /**
  * 
  */
@@ -22,6 +24,7 @@ class DISRUNTIME_API UDIS_BPFL : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 private:
+
 	/**
 	 * Creates a 4x4 rotation matrix around the given axis of rotation rotating by Theta degrees
 	 * @param AxisVector A 3x1 vector representing the axis of rotation
@@ -60,6 +63,15 @@ private:
 	static void ApplyRollToNorthEastDownVector(const float RollDegrees, const FNorthEastDown NorthEastDownVectors, FVector& OutX, FVector& OutY, FVector& OutZ);
 
 public:
+
+	/**
+	 * Utility function to create a DIS table from a CSV file
+	 * @param CSVFilePath The path to the CSV file
+	 * @return The created DIS table, or nullptr if file not found.
+	 */
+	UFUNCTION(BlueprintPure, Category = "GRILL DIS")
+	static UDataTable* CreateDISTableFromCSV(const FString& CSVFilePath);
+
 	/**
 	 * Creates a 4x4 n^x matrix used for creating a rotation matrix
 	 * @param NVector A 3x1 vector representing the axis of rotation

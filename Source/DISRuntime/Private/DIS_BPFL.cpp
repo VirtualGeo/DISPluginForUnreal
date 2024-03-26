@@ -6,6 +6,26 @@
 
 DEFINE_LOG_CATEGORY(LogDIS_BPFL);
 
+
+UDataTable* UDIS_BPFL::CreateDISTableFromCSV(const FString& CSVFilePath)
+{
+	FString FileContent;
+	if (!FFileHelper::LoadFileToString(FileContent, *CSVFilePath))
+	{
+		UE_LOG(LogDIS_BPFL, Error, TEXT("Error loading CSV file: %s"), *CSVFilePath);
+		return nullptr;
+	}
+
+	UDataTable* DataTable = NewObject<UDataTable>();
+	TArray<FString> Error = DataTable->CreateTableFromCSVString(FileContent);
+	if(Error.Num() > 0)
+    {
+        UE_LOG(LogDIS_BPFL, Error, TEXT("Error creating DataTable from CSV: %s"), *Error[0]);
+    }
+
+	return DataTable;
+}
+
 void UDIS_BPFL::CalculateLatLonHeightFromEcefXYZ(const FVector Ecef, FVector& OutLatLonHeightDegreesMeters)
 {
 	constexpr double earthEquitorialRadiusMeters = 6378137;

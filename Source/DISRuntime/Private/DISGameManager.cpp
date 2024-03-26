@@ -5,6 +5,8 @@
 #include "DIS_BPFL.h"
 #include "Engine/Engine.h"
 #include "PDUProcessor.h"
+#include "Misc/Paths.h"
+#include "DIS_BPFL.h"
 
 DEFINE_LOG_CATEGORY(LogDISGameManager);
 
@@ -73,7 +75,31 @@ void ADISGameManager::BeginPlay()
 		}
 	}
 
-	if (DISClassEnum) 
+	if(DISMappingTable && DISClassEnum)
+	{
+        UE_LOG(LogDISGameManager, Warning, TEXT("Both DIS Mapping Table and DIS Class Enum have been set. DIS Mapping Table will be used."));
+	}
+
+	if (!DISMappingCSV.FilePath.IsEmpty())
+	{		
+		//FString BinaryDir = FPaths::ProjectDir();
+		//FString FullPath = FPaths::ConvertRelativePathToFull(BinaryDir, DISMappingCSV.FilePath);
+		//FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*DISMappingCSV.FilePath);
+		FString FullPath = DISMappingCSV.FilePath;
+		UDataTable* DataTable = UDIS_BPFL::CreateDISTableFromCSV(FullPath);
+		if (DataTable)
+		{
+			InitializeMappingFromDataTable(DataTable);
+			UE_LOG(LogDISGameManager, Log, TEXT("DIS Mapping read from file : %s"), *FullPath);
+        }
+		DataTable->ConditionalBeginDestroy();
+	}
+	else if(DISMappingTable)
+	{
+		InitializeMappingFromDataTable(DISMappingTable);
+		UE_LOG(LogDISGameManager, Log, TEXT("DIS Mapping read from DataTable."));
+    }
+	else if (DISClassEnum) 
 	{
 		//Initialize DISClassMappings from the loaded settings
 		for (FDISClassEnumStruct DISMapping : DISClassEnum->DISClassEnumArray)
@@ -92,10 +118,41 @@ void ADISGameManager::BeginPlay()
 				RawDISClassMappings.insert_or_assign(EntityType, DISMapping.DISEntity);
 			}
 		}
+
+		UE_LOG(LogDISGameManager, Log, TEXT("DIS Mapping read from EnumArray."));
 	}
 	else
 	{
-		UE_LOG(LogDISGameManager, Error, TEXT("No DIS Class Enum Mapping has been set within the DIS Game Manager actor!"));
+		UE_LOG(LogDISGameManager, Error, TEXT("No DIS Mapping has been set within the DIS Game Manager actor!"));
+	}
+}
+
+void ADISGameManager::InitializeMappingFromDataTable(UDataTable* DISMappingTableIn)
+{
+	TArray<FDISClassEnumStruct*> DISMappings;
+	FString ErrorContext;
+	DISMappingTableIn->GetAllRows<FDISClassEnumStruct>(ErrorContext, DISMappings);
+
+	if (!ErrorContext.IsEmpty())
+	{
+		UE_LOG(LogDISGameManager, Warning, TEXT("Error loading DIS Mapping Table: %s"), *ErrorContext);
+	}
+
+	for (FDISClassEnumStruct* DISMapping : DISMappings)
+	{
+		for (FEntityType EntityType : DISMapping->AssociatedDISEnumerations)
+		{
+			//Check to see if there is an associated actor for the entity type already
+			TSoftClassPtr<AActor>* associatedSoftClassReference = DISClassMappings.Find(EntityType);
+
+			if (associatedSoftClassReference != nullptr)
+			{
+				UE_LOG(LogDISGameManager, Warning, TEXT("A DIS Enumeration mapping already exists for %s and is linked to %s. This enumeration will now point to: %s"), *EntityType.ToString(), *associatedSoftClassReference->GetAssetName(), *DISMapping->DISEntity.GetAssetName());
+			}
+
+			DISClassMappings.Add(EntityType, DISMapping->DISEntity);
+			RawDISClassMappings.insert_or_assign(EntityType, DISMapping->DISEntity);
+		}
 	}
 }
 

@@ -6,20 +6,22 @@
 #include "UObject/NoExportTypes.h"
 #include "DISEnumsAndStructs.h"
 #include "DISInterface.h"
+#include "Engine/Datatable.h"
 #include "DISClassEnumMappings.generated.h"
 
-USTRUCT()
-struct FDISClassEnumStruct
+USTRUCT(BlueprintType)
+struct FDISClassEnumStruct : public FTableRowBase
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "GRILL DIS|Structs")
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GRILL DIS")
 		FString FriendlyName;
 
-	UPROPERTY(EditAnywhere, meta = (MustImplement = "DISInterface"), Category = "GRILL DIS|Structs")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (MustImplement = "DISInterface"), Category = "GRILL DIS")
 		TSoftClassPtr<AActor> DISEntity;
 
-	UPROPERTY(EditAnywhere, Category = "GRILL DIS|Structs")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GRILL DIS")
 		TArray<FEntityType> AssociatedDISEnumerations;
 };
 
