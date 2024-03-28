@@ -20,6 +20,9 @@ DECLARE_LOG_CATEGORY_EXTERN(LogDISGameManager, Log, All);
 DECLARE_STATS_GROUP(TEXT("DISGameManager_Game"), STATGROUP_DISGameManager, STATCAT_Advanced);
 DECLARE_CYCLE_STAT(TEXT("GetAssociatedDISComponent"), STAT_GetAssociatedDISComponent, STATGROUP_DISGameManager);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDISEntitySpawned, AActor*, EntityActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDISEntityDestroyed, AActor*, EntityActor);
+
 USTRUCT(Blueprintable)
 struct FSendSocketInfo
 {
@@ -77,6 +80,10 @@ struct FInitialDISConditions
 	}
 };
 
+
+
+
+
 UCLASS(config=GRILLDIS, Blueprintable)
 class DISRUNTIME_API ADISGameManager : public AInfo
 {
@@ -96,6 +103,25 @@ public:
 	UFUNCTION(BlueprintPure, Category = "GRILL DIS|Game Manager", meta = (WorldContext = "WorldContextObject"))
 		static ADISGameManager* GetDISGameManager(UObject* WorldContextObject);
 
+	/**
+	 * Delegate called when an entity is spawned
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "GRILL DIS|Game Manager|Events")
+	FDISEntitySpawned OnEntitySpawned;
+
+	/**
+	 * Delegate called when an entity is destroyed
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "GRILL DIS|Game Manager|Events")
+	FDISEntityDestroyed OnEntityDestroyed;
+
+	/**
+	 * Find all entities with the desired EntityType
+	 * (Type is read from en DISReceiveComponent)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GRILL DIS|Game Manager")
+	TArray<AActor*> FindEntityByType(FEntityType EntityType);
+	
 	/**
 	 * Delegates the given Entity State PDU to the appropriate DIS Entity actor.
 	 * @param EntityStatePDUIn - The Entity State PDU to pass to the appropriate entity.

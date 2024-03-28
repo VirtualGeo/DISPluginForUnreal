@@ -184,6 +184,8 @@ void ADISGameManager::Tick(float DeltaTime)
 
 void ADISGameManager::HandleOnDISEntityDestroyed(AActor* DestroyedActor)
 {
+	OnEntityDestroyed.Broadcast(DestroyedActor);
+
 	bool anyRemoved = false;
 
 	//Remove the actor from the dis entity mapping
@@ -410,6 +412,8 @@ void ADISGameManager::SpawnNewEntityFromEntityState(FEntityStatePDU EntityStateP
 				DISComponent->SpawnedFromNetwork = true;
 				DISComponent->HandleEntityStatePDU(EntityStatePDUIn);
 			}
+
+			OnEntitySpawned.Broadcast(spawnedActor);
 		}
 	}
 	else
@@ -417,6 +421,23 @@ void ADISGameManager::SpawnNewEntityFromEntityState(FEntityStatePDU EntityStateP
 		//Otherwise notify the user that no such mapping exists
 		UE_LOG(LogDISGameManager, Warning, TEXT("No mapping exists between an actor and the DIS enumeration of: %s"), *EntityStatePDUIn.EntityType.ToString());
 	}
+}
+
+TArray<AActor*> ADISGameManager::FindEntityByType(FEntityType EntityType)
+{
+	TArray<AActor*> Entities;
+
+	for (const auto& Elem : DISActorMappings)
+	{
+		AActor* Actor = Elem.Value;
+		UDISReceiveComponent* DISComponent = IDISInterface::Execute_GetActorDISReceiveComponent(Actor);
+		if (DISComponent && DISComponent->EntityType == EntityType)
+		{
+			Entities.Add(Actor);
+		}
+	}
+
+	return Entities;
 }
 
 UDISReceiveComponent* ADISGameManager::GetAssociatedDISComponent(FEntityID EntityIDIn)
