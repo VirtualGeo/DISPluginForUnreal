@@ -3,6 +3,7 @@
 
 #include "DIS_BPFL.h"
 #include "DISGameManager.h"
+#include "Misc/FileHelper.h"
 
 DEFINE_LOG_CATEGORY(LogDIS_BPFL);
 
