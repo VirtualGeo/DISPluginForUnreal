@@ -73,6 +73,15 @@ public:
 	static UDataTable* CreateDISTableFromCSV(const FString& CSVFilePath);
 
 	/**
+	 * Compare if two FEntityType are equals
+	 */
+	UFUNCTION(BlueprintPure, Category = "GRILL DIS")
+	static bool Equals(const FEntityType& A, const FEntityType& B)
+	{
+		return A.operator==(B);
+	}
+
+	/**
 	 * Creates a 4x4 n^x matrix used for creating a rotation matrix
 	 * @param NVector A 3x1 vector representing the axis of rotation
 	 */
